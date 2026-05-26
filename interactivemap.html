@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>Mapbox Google Maps Style + GLB</title>
+
+<!-- MAPBOX CSS -->
+<link
+href="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.css"
+rel="stylesheet"
+/>
+
+<!-- MAPBOX DIRECTIONS -->
+<link
+rel="stylesheet"
+href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.css"
+type="text/css"
+/>
+
+<style>
+
+body {
+    margin: 0;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+}
+
+#map {
+    width: 100vw;
+    height: 100vh;
+}
+
+/* SEARCH BOX */
+
+.search-container {
+
+    position: absolute;
+
+    top: 10px;
+
+    left: 10px;
+
+    z-index: 20;
+
+    width: 320px;
+}
+
+.search-container input {
+
+    width: 100%;
+
+    padding: 12px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    font-size: 16px;
+
+    background: white;
+
+    box-shadow:
+        0 2px 10px rgba(0,0,0,0.2);
+
+    outline: none;
+}
+
+/* MOVE DESTINATION PANEL BELOW SEARCH */
+
+.mapboxgl-ctrl-directions {
+
+    margin-top: 70px !important;
+
+    border-radius: 10px;
+
+    overflow: hidden;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- SEARCH -->
+<div class="search-container">
+    <input
+        type="text"
+        id="searchBox"
+        placeholder="Search location in Philippines..."
+    />
+</div>
+
+<!-- MAP -->
+<div id="map"></div>
+
+<!-- MAPBOX -->
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.js"></script>
+
+<!-- MAPBOX DIRECTIONS -->
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.js"></script>
+
+<!-- THREE JS -->
+<script type="module">
+
+// =====================================================
+// IMPORTS
+// =====================================================
+
+import * as THREE from 'https://esm.sh/three@0.160.0';
+
+import {
+    GLTFLoader
+}
+from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+
+// =====================================================
+// MAPBOX TOKEN
+// =====================================================
+
+mapboxgl.accessToken =
+'pk.eyJ1Ijoib2JqZWN0MzYwIiwiYSI6ImNtcGFybzkzNTAwOGwycXM2MnUzMGZ5YXEifQ.EviMelgRJfG7n3T9x0TNAA';
+
+// =====================================================
+// COORDINATES
+// =====================================================
+
+const lng = 121.079853;
+const lat = 14.597905;
+
+// =====================================================
+// MAP
+// =====================================================
+
+const map = new mapboxgl.Map({
+
+    container: 'map',
+
+    style: 'mapbox://styles/mapbox/standard',
+
+    center: [lng, lat],
+
+    zoom: 18,
+
+    pitch: 70,
+
+    bearing: -20,
+
+    antialias: true
+
+});
+
+// =====================================================
+// NAVIGATION CONTROLS
+// =====================================================
+
+map.addControl(
+    new mapboxgl.NavigationControl(),
+    'top-right'
+);
+
+// =====================================================
+// GEOLOCATION
+// =====================================================
+
+map.addControl(
+
+    new mapboxgl.GeolocateControl({
+
+        positionOptions: {
+            enableHighAccuracy: true
+        },
+
+        trackUserLocation: true,
+
+        showUserHeading: true
+
+    }),
+
+    'top-right'
+
+);
+
+// =====================================================
+// DIRECTIONS
+// =====================================================
+
+const directions =
+new MapboxDirections({
+
+    accessToken:
+        mapboxgl.accessToken,
+
+    unit: 'metric',
+
+    profile: 'mapbox/driving',
+
+    language: 'en',
+
+    controls: {
+        instructions: true
+    }
+
+});
+
+map.addControl(
+    directions,
+    'top-left'
+);
+
+// =====================================================
+// DEFAULT DESTINATION
+// =====================================================
+
+map.on('load', () => {
+
+    directions.setDestination([
+        lng,
+        lat
+    ]);
+
+    // WAIT FOR UI TO LOAD
+    setTimeout(() => {
+
+        const inputs =
+        document.querySelectorAll(
+            '.mapbox-directions-component input'
+        );
+
+        // DESTINATION INPUT
+        if (inputs[1]) {
+
+            inputs[1].value =
+            'Sample Location';
+
+        }
+
+    }, 1000);
+
+});
+
+// =====================================================
+// FORCE PHILIPPINES ONLY
+// =====================================================
+
+const originalFetch =
+window.fetch;
+
+window.fetch = async (...args) => {
+
+    let url = args[0];
+
+    if (
+        typeof url === 'string' &&
+        url.includes('mapbox.places')
+    ) {
+
+        if (!url.includes('country=ph')) {
+
+            if (url.includes('?')) {
+
+                url += '&country=ph';
+
+            } else {
+
+                url += '?country=ph';
+
+            }
+
+        }
+
+        args[0] = url;
+
+    }
+
+    return originalFetch(...args);
+
+};
+
+// =====================================================
+// SEARCH (PHILIPPINES ONLY)
+// =====================================================
+
+const searchBox =
+document.getElementById('searchBox');
+
+searchBox.addEventListener(
+    'keypress',
+    async (e) => {
+
+        if (e.key === 'Enter') {
+
+            const query =
+            searchBox.value;
+
+            const url =
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?country=ph&access_token=${mapboxgl.accessToken}`;
+
+            const response =
+            await fetch(url);
+
+            const data =
+            await response.json();
+
+            if (
+                data.features &&
+                data.features.length > 0
+            ) {
+
+                const place =
+                data.features[0];
+
+                map.flyTo({
+
+                    center:
+                        place.center,
+
+                    zoom: 18,
+
+                    speed: 1.2
+
+                });
+
+                // MARKER
+                new mapboxgl.Marker()
+
+                    .setLngLat(
+                        place.center
+                    )
+
+                    .addTo(map);
+
+            }
+
+        }
+
+    }
+);
+
+// =====================================================
+// STYLE LOAD
+// =====================================================
+
+map.on('style.load', () => {
+
+    // =================================================
+    // 3D BUILDINGS
+    // =================================================
+
+    map.addLayer({
+
+        id: '3d-buildings',
+
+        source: 'composite',
+
+        'source-layer': 'building',
+
+        filter: ['==', 'extrude', 'true'],
+
+        type: 'fill-extrusion',
+
+        minzoom: 15,
+
+        paint: {
+
+            'fill-extrusion-color': '#aaa',
+
+            'fill-extrusion-height': [
+                'get',
+                'height'
+            ],
+
+            'fill-extrusion-base': [
+                'get',
+                'min_height'
+            ],
+
+            'fill-extrusion-opacity': 0.6
+
+        }
+
+    });
+
+    // =================================================
+    // MODEL LOCATION
+    // =================================================
+
+    const modelOrigin = [
+        lng,
+        lat
+    ];
+
+    const modelAltitude = 0;
+
+    const modelAsMercatorCoordinate =
+        mapboxgl.MercatorCoordinate.fromLngLat(
+            modelOrigin,
+            modelAltitude
+        );
+
+    // =================================================
+    // MODEL TRANSFORM
+    // =================================================
+
+    const modelTransform = {
+
+        translateX:
+            modelAsMercatorCoordinate.x,
+
+        translateY:
+            modelAsMercatorCoordinate.y,
+
+        translateZ:
+            modelAsMercatorCoordinate.z,
+
+        rotateX: Math.PI / 2,
+
+        rotateY: 360,
+
+        rotateZ: 0,
+
+        scale:
+            modelAsMercatorCoordinate
+            .meterInMercatorCoordinateUnits()
+
+    };
+
+    // =================================================
+    // CUSTOM LAYER
+    // =================================================
+
+    const customLayer = {
+
+        id: '3d-model',
+
+        type: 'custom',
+
+        renderingMode: '3d',
+
+        onAdd(map, gl) {
+
+            this.camera =
+                new THREE.Camera();
+
+            this.scene =
+                new THREE.Scene();
+
+            const ambientLight =
+                new THREE.AmbientLight(
+                    0xffffff,
+                    3
+                );
+
+            this.scene.add(
+                ambientLight
+            );
+
+            const directionalLight =
+                new THREE.DirectionalLight(
+                    0xffffff,
+                    5
+                );
+
+            directionalLight.position.set(
+                100,
+                100,
+                200
+            );
+
+            this.scene.add(
+                directionalLight
+            );
+
+            const loader =
+                new GLTFLoader();
+
+            loader.load(
+
+                './BroadwalkMallFinal2.glb',
+
+                (gltf) => {
+
+                    console.log(
+                        'MODEL LOADED'
+                    );
+
+                    this.model =
+                        gltf.scene;
+
+                    this.model.scale.set(
+                        1,
+                        1,
+                        1
+                    );
+
+                    const box =
+                        new THREE.Box3()
+                        .setFromObject(
+                            this.model
+                        );
+
+                    this.model.position.z =
+                        -box.min.z;
+
+                    this.model.traverse(
+                        (obj) => {
+
+                        if (obj.isMesh) {
+
+                            obj.castShadow = true;
+
+                            obj.receiveShadow = true;
+
+                        }
+
+                    });
+
+                    this.scene.add(
+                        this.model
+                    );
+
+                },
+
+                undefined,
+
+                (error) => {
+
+                    console.error(
+                        'GLB ERROR:',
+                        error
+                    );
+
+                }
+
+            );
+
+            this.renderer =
+                new THREE.WebGLRenderer({
+
+                    canvas:
+                        map.getCanvas(),
+
+                    context: gl,
+
+                    antialias: true
+
+                });
+
+            this.renderer.autoClear =
+                false;
+
+        },
+
+        render(gl, matrix) {
+
+            const rotationX =
+                new THREE.Matrix4()
+                .makeRotationAxis(
+
+                    new THREE.Vector3(
+                        1,
+                        0,
+                        0
+                    ),
+
+                    modelTransform.rotateX
+                );
+
+            const rotationY =
+                new THREE.Matrix4()
+                .makeRotationAxis(
+
+                    new THREE.Vector3(
+                        0,
+                        1,
+                        0
+                    ),
+
+                    modelTransform.rotateY
+                );
+
+            const rotationZ =
+                new THREE.Matrix4()
+                .makeRotationAxis(
+
+                    new THREE.Vector3(
+                        0,
+                        0,
+                        1
+                    ),
+
+                    modelTransform.rotateZ
+                );
+
+            const m =
+                new THREE.Matrix4()
+                .fromArray(matrix);
+
+            const l =
+                new THREE.Matrix4()
+
+                .makeTranslation(
+
+                    modelTransform.translateX,
+
+                    modelTransform.translateY,
+
+                    modelTransform.translateZ
+
+                )
+
+                .scale(
+
+                    new THREE.Vector3(
+
+                        modelTransform.scale,
+
+                        -modelTransform.scale,
+
+                        modelTransform.scale
+
+                    )
+
+                )
+
+                .multiply(rotationX)
+
+                .multiply(rotationY)
+
+                .multiply(rotationZ);
+
+            this.camera.projectionMatrix =
+                m.multiply(l);
+
+            this.renderer.resetState();
+
+            this.renderer.render(
+
+                this.scene,
+
+                this.camera
+
+            );
+
+            map.triggerRepaint();
+
+        }
+
+    };
+
+    map.addLayer(customLayer);
+
+});
+
+</script>
+
+</body>
+</html>
