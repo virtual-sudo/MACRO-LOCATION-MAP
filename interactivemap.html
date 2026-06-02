@@ -3,24 +3,14 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Broadwalk Mall Map</title>
 
-<title>Mapbox Google Maps Style + GLB</title>
-
-<!-- MAPBOX CSS -->
 <link
 href="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.css"
 rel="stylesheet"
 />
 
-<!-- MAPBOX DIRECTIONS -->
-<link
-rel="stylesheet"
-href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.css"
-type="text/css"
-/>
-
 <style>
-
 body {
     margin: 0;
     overflow: hidden;
@@ -32,82 +22,451 @@ body {
     height: 100vh;
 }
 
-/* SEARCH BOX */
-
-.search-container {
-
+.ui-panel {
     position: absolute;
-
-    top: 10px;
-
-    left: 10px;
-
+    top: 20px;
+    left: 20px;
+    width: 350px;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 28px;
+    padding: 18px;
     z-index: 20;
-
-    width: 320px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
 }
 
-.search-container input {
+.search-wrapper {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+}
 
-    width: 100%;
-
-    padding: 12px;
-
+.search-wrapper input {
+    flex: 1;
     border: none;
-
-    border-radius: 8px;
-
-    font-size: 16px;
-
-    background: white;
-
-    box-shadow:
-        0 2px 10px rgba(0,0,0,0.2);
-
     outline: none;
+    padding: 16px;
+    border-radius: 18px;
+    font-size: 16px;
+    background: white;
+    box-shadow: inset 0 0 0 1px #ddd;
 }
 
-/* MOVE DESTINATION PANEL BELOW SEARCH */
-
-.mapboxgl-ctrl-directions {
-
-    margin-top: 70px !important;
-
-    border-radius: 10px;
-
-    overflow: hidden;
+.search-wrapper button {
+    border: none;
+    background: #071633;
+    color: white;
+    padding: 0 22px;
+    border-radius: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 16px;
 }
 
+.heatmap-btn {
+    width: 100%;
+    border: none;
+    background: white;
+    padding: 18px;
+    border-radius: 22px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 20px;
+    box-shadow: inset 0 0 0 1px #ddd;
+}
+
+.heat-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: #ef4444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 22px;
+}
+
+.layers-title {
+    color: #7c879b;
+    font-weight: bold;
+    margin-bottom: 12px;
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+
+.category {
+    background: white;
+    border-radius: 22px;
+    padding: 18px;
+    margin-bottom: 14px;
+    box-shadow: inset 0 0 0 1px #ddd;
+}
+
+.category-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+}
+
+.category-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.category-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.red { background: #ef4444; }
+.orange { background: #f59e0b; }
+.blue { background: #3b82f6; }
+.green { background: #10b981; }
+
+.category-title {
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.category-sub {
+    color: #7c879b;
+    font-size: 14px;
+}
+
+.dropdown {
+    display: none;
+    margin-top: 16px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+}
+
+.dropdown button {
+    width: 100%;
+    border: none;
+    background: #f8fafc;
+    padding: 14px;
+    margin-bottom: 10px;
+    border-radius: 14px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.dropdown button:hover {
+    background: #eef2ff;
+}
+
+.distance-box {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 30;
+    background: white;
+    padding: 14px 24px;
+    border-radius: 16px;
+    font-weight: bold;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+/* =====================================================
+   MOBILE RESPONSIVE
+===================================================== */
+
+@media (max-width: 768px) {
+
+    .ui-panel {
+
+        width: auto;
+
+        left: 12px;
+        right: 12px;
+        top: 12px;
+
+        padding: 12px;
+
+        border-radius: 22px;
+
+        max-height: 85vh;
+
+        overflow-y: auto;
+    }
+
+    .search-wrapper {
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .search-wrapper input {
+
+        padding: 12px;
+
+        font-size: 14px;
+
+        border-radius: 14px;
+    }
+
+    .search-wrapper button {
+
+        padding: 0 16px;
+
+        font-size: 14px;
+
+        border-radius: 14px;
+    }
+
+    .heatmap-btn {
+
+        padding: 12px;
+
+        border-radius: 16px;
+
+        font-size: 15px;
+
+        margin-bottom: 12px;
+    }
+
+    .heat-icon {
+
+        width: 36px;
+        height: 36px;
+
+        border-radius: 12px;
+
+        font-size: 18px;
+    }
+
+    .layers-title {
+
+        font-size: 12px;
+
+        margin-bottom: 10px;
+    }
+
+    .category {
+
+        padding: 12px;
+
+        border-radius: 18px;
+
+        margin-bottom: 10px;
+    }
+
+    .category-header {
+
+        align-items: center;
+
+        justify-content: space-between;
+    }
+
+    .category-left {
+
+        display: flex;
+
+        align-items: center;
+
+        gap: 12px;
+    }
+
+    .category-icon {
+
+        width: 42px;
+        height: 42px;
+
+        border-radius: 12px;
+
+        font-size: 20px;
+
+        flex-shrink: 0;
+    }
+
+    .category-title {
+
+        font-size: 15px;
+    }
+
+    .category-sub {
+
+        font-size: 12px;
+    }
+
+    /* MOBILE DROPDOWN ICON */
+
+    .category-header > :last-child {
+
+        font-size: 16px;
+
+        color: #7c879b;
+    }
+
+    .dropdown {
+
+        margin-top: 12px;
+
+        padding-top: 10px;
+    }
+
+    .dropdown button {
+
+        padding: 12px;
+
+        font-size: 14px;
+
+        border-radius: 12px;
+    }
+
+    .distance-box {
+
+        left: 12px;
+        right: 12px;
+
+        width: auto;
+
+        transform: none;
+
+        text-align: center;
+
+        bottom: 12px;
+
+        padding: 12px;
+
+        font-size: 14px;
+
+        border-radius: 14px;
+    }
+}
 </style>
-
 </head>
 
 <body>
 
-<!-- SEARCH -->
-<div class="search-container">
-    <input
-        type="text"
-        id="searchBox"
-        placeholder="Search location in Philippines..."
-    />
+<div class="ui-panel">
+
+    <div class="search-wrapper">
+        <input
+            id="searchBox"
+            type="text"
+            placeholder="Search a place in the Philippines..."
+        />
+
+        <button onclick="searchLocation()">
+            Go
+        </button>
+    </div>
+
+    <button class="heatmap-btn" onclick="toggleHeatmap()">
+        <div class="heat-icon">🔥</div>
+        Toggle Heatmap
+    </button>
+
+    <div class="layers-title">
+        LAYERS
+    </div>
+
+    <div class="category">
+        <div class="category-header" onclick="toggleDropdown('competitorsDropdown')">
+            <div class="category-left">
+                <div class="category-icon red">🏬</div>
+                <div>
+                    <div class="category-title">Competitors</div>
+                    <div class="category-sub">4 locations</div>
+                </div>
+            </div>
+            ▼
+        </div>
+
+        <div class="dropdown" id="competitorsDropdown">
+            <button onclick="routeFromLocation('Opus Mall',[121.080234,14.593218],'#ef4444')">Opus Mall</button>
+            <button onclick="routeFromLocation('Eastwood Cyber & Fashion Mall',[121.0795,14.6098],'#ef4444')">Eastwood Cyber & Fashion Mall</button>
+            <button onclick="routeFromLocation('SM Megamall',[121.0566,14.5849],'#ef4444')">SM Megamall</button>
+            <button onclick="routeFromLocation('Shangri-La Plaza',[121.0563,14.5812],'#ef4444')">Shangri-La Plaza</button>
+        </div>
+    </div>
+
+    <div class="category">
+        <div class="category-header" onclick="toggleDropdown('highwayDropdown')">
+            <div class="category-left">
+                <div class="category-icon orange">🛣️</div>
+                <div>
+                    <div class="category-title">Highways</div>
+                    <div class="category-sub">3 locations</div>
+                </div>
+            </div>
+            ▼
+        </div>
+
+        <div class="dropdown" id="highwayDropdown">
+            <button onclick="routeFromLocation('Ortigas Ave',[121.072978,14.589252],'#f59e0b')">Ortigas Ave</button>
+            <button onclick="routeFromLocation('C5',[121.0800,14.5900],'#f59e0b')">C5</button>
+            <button onclick="routeFromLocation('E-Rodriguez',[121.075152,14.614187],'#f59e0b')">E-Rodriguez</button>
+        </div>
+    </div>
+
+    <div class="category">
+        <div class="category-header" onclick="toggleDropdown('businessDropdown')">
+            <div class="category-left">
+                <div class="category-icon blue">🏢</div>
+                <div>
+                    <div class="category-title">Business Zone</div>
+                    <div class="category-sub">3 locations</div>
+                </div>
+            </div>
+            ▼
+        </div>
+
+        <div class="dropdown" id="businessDropdown">
+            <button onclick="routeFromLocation('Zeta Tower',[121.081319,14.591495],'#3b82f6')">Zeta Tower</button>
+            <button onclick="routeFromLocation('Eastwood Avenue',[121.0794,14.6097],'#3b82f6')">Eastwood Avenue</button>
+            <button onclick="routeFromLocation('Dona Julia Vargas',[121.062789,14.584370],'#3b82f6')">Dona Julia Vargas</button>
+        </div>
+    </div>
+
+    <div class="category">
+        <div class="category-header" onclick="toggleDropdown('residentialDropdown')">
+            <div class="category-left">
+                <div class="category-icon green">🏠</div>
+                <div>
+                    <div class="category-title">Residential Catchment</div>
+                    <div class="category-sub">4 locations</div>
+                </div>
+            </div>
+            ▼
+        </div>
+
+        <div class="dropdown" id="residentialDropdown">
+            <button onclick="routeFromLocation('Green Meadows',[121.076221,14.596158],'#10b981')">Green Meadows</button>
+            <button onclick="routeFromLocation('White Plains',[121.063797,14.600613],'#10b981')">White Plains</button>
+            <button onclick="routeFromLocation('Ugong Norte',[121.065204,14.592959],'#10b981')">Ugong Norte</button>
+            <button onclick="routeFromLocation('Manggahan',[121.093304,14.602790],'#10b981')">Manggahan</button>
+        </div>
+    </div>
+
 </div>
 
-<!-- MAP -->
+<div class="distance-box" id="distanceBox">
+    Select a location
+</div>
+
 <div id="map"></div>
 
-<!-- MAPBOX -->
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.js"></script>
 
-<!-- MAPBOX DIRECTIONS -->
-<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.js"></script>
-
-<!-- THREE JS -->
 <script type="module">
-
-// =====================================================
-// IMPORTS
-// =====================================================
 
 import * as THREE from 'https://esm.sh/three@0.160.0';
 
@@ -116,281 +475,340 @@ import {
 }
 from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
 
-// =====================================================
-// MAPBOX TOKEN
-// =====================================================
-
 mapboxgl.accessToken =
 'pk.eyJ1Ijoib2JqZWN0MzYwIiwiYSI6ImNtcGFybzkzNTAwOGwycXM2MnUzMGZ5YXEifQ.EviMelgRJfG7n3T9x0TNAA';
 
-// =====================================================
-// COORDINATES
-// =====================================================
-
-const lng = 121.079853;
-const lat = 14.597905;
-
-// =====================================================
-// MAP
-// =====================================================
+const lng = 121.07981;
+const lat = 14.59823;
 
 const map = new mapboxgl.Map({
-
     container: 'map',
-
     style: 'mapbox://styles/mapbox/standard',
-
     center: [lng, lat],
-
-    zoom: 18,
-
+    zoom: 17,
     pitch: 70,
-
     bearing: -20,
-
     antialias: true
-
 });
 
-// =====================================================
-// NAVIGATION CONTROLS
-// =====================================================
+new mapboxgl.Marker({
+    color: '#2563eb'
+})
+.setLngLat([lng, lat])
+.addTo(map);
 
 map.addControl(
     new mapboxgl.NavigationControl(),
     'top-right'
 );
 
-// =====================================================
-// GEOLOCATION
-// =====================================================
+window.searchLocation = async function () {
 
-map.addControl(
+    const query =
+    document.getElementById(
+        'searchBox'
+    ).value;
 
-    new mapboxgl.GeolocateControl({
+    const url =
+`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?country=ph&access_token=${mapboxgl.accessToken}`;
 
-        positionOptions: {
-            enableHighAccuracy: true
-        },
+    const response =
+    await fetch(url);
 
-        trackUserLocation: true,
+    const data =
+    await response.json();
 
-        showUserHeading: true
+    if (data.features.length > 0) {
 
-    }),
-
-    'top-right'
-
-);
-
-// =====================================================
-// DIRECTIONS
-// =====================================================
-
-const directions =
-new MapboxDirections({
-
-    accessToken:
-        mapboxgl.accessToken,
-
-    unit: 'metric',
-
-    profile: 'mapbox/driving',
-
-    language: 'en',
-
-    controls: {
-        instructions: true
-    }
-
-});
-
-map.addControl(
-    directions,
-    'top-left'
-);
-
-// =====================================================
-// DEFAULT DESTINATION
-// =====================================================
-
-map.on('load', () => {
-
-    directions.setDestination([
-        lng,
-        lat
-    ]);
-
-    // WAIT FOR UI TO LOAD
-    setTimeout(() => {
-
-        const inputs =
-        document.querySelectorAll(
-            '.mapbox-directions-component input'
-        );
-
-        // DESTINATION INPUT
-        if (inputs[1]) {
-
-            inputs[1].value =
-            'Sample Location';
-
-        }
-
-    }, 1000);
-
-});
-
-// =====================================================
-// FORCE PHILIPPINES ONLY
-// =====================================================
-
-const originalFetch =
-window.fetch;
-
-window.fetch = async (...args) => {
-
-    let url = args[0];
-
-    if (
-        typeof url === 'string' &&
-        url.includes('mapbox.places')
-    ) {
-
-        if (!url.includes('country=ph')) {
-
-            if (url.includes('?')) {
-
-                url += '&country=ph';
-
-            } else {
-
-                url += '?country=ph';
-
-            }
-
-        }
-
-        args[0] = url;
+        map.flyTo({
+            center: data.features[0].center,
+            zoom: 15
+        });
 
     }
-
-    return originalFetch(...args);
-
 };
 
-// =====================================================
-// SEARCH (PHILIPPINES ONLY)
-// =====================================================
+window.toggleDropdown =
+function(id) {
 
-const searchBox =
-document.getElementById('searchBox');
+    const dropdown =
+    document.getElementById(id);
 
-searchBox.addEventListener(
-    'keypress',
-    async (e) => {
+    dropdown.style.display =
+        dropdown.style.display === 'block'
+        ? 'none'
+        : 'block';
+};
 
-        if (e.key === 'Enter') {
+let currentMarker = null;
 
-            const query =
-            searchBox.value;
+window.routeFromLocation =
+async function(name, startCoords, markerColor) {
 
-            const url =
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?country=ph&access_token=${mapboxgl.accessToken}`;
-
-            const response =
-            await fetch(url);
-
-            const data =
-            await response.json();
-
-            if (
-                data.features &&
-                data.features.length > 0
-            ) {
-
-                const place =
-                data.features[0];
-
-                map.flyTo({
-
-                    center:
-                        place.center,
-
-                    zoom: 18,
-
-                    speed: 1.2
-
-                });
-
-                // MARKER
-                new mapboxgl.Marker()
-
-                    .setLngLat(
-                        place.center
-                    )
-
-                    .addTo(map);
-
-            }
-
-        }
-
+    if (map.getLayer('route')) {
+        map.removeLayer('route');
     }
-);
 
-// =====================================================
-// STYLE LOAD
-// =====================================================
+    if (map.getSource('route')) {
+        map.removeSource('route');
+    }
+
+    if (currentMarker) {
+        currentMarker.remove();
+    }
+
+    currentMarker = new mapboxgl.Marker({
+        color: markerColor
+    })
+    .setLngLat(startCoords)
+    .addTo(map);
+
+    const url =
+`https://api.mapbox.com/directions/v5/mapbox/driving/${startCoords[0]},${startCoords[1]};${lng},${lat}?geometries=geojson&access_token=${mapboxgl.accessToken}`;
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    const route = data.routes[0].geometry;
+
+    const distance = (
+        data.routes[0].distance / 1000
+    ).toFixed(2);
+
+    map.addSource('route', {
+        type: 'geojson',
+        data: {
+            type: 'Feature',
+            geometry: route
+        }
+    });
+
+    map.addLayer({
+        id: 'route',
+        type: 'line',
+        source: 'route',
+        layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+        },
+        paint: {
+            'line-color': '#2563eb',
+            'line-width': 6
+        }
+    });
+
+    document.getElementById(
+        'distanceBox'
+    ).innerHTML =
+    `${name} → ${distance} KM`;
+
+    const bounds = new mapboxgl.LngLatBounds();
+    route.coordinates.forEach(coord => bounds.extend(coord));
+
+    map.fitBounds(bounds, {
+        padding: 120,
+        pitch: 45,
+        bearing: -20,
+        duration: 2000
+    });
+};
+
+let heatmapVisible = false;
+
+window.toggleHeatmap = function () {
+
+    heatmapVisible = !heatmapVisible;
+
+    if (map.getLayer('heatmap-layer')) {
+        map.removeLayer('heatmap-layer');
+    }
+
+    if (map.getSource('heatmap-source')) {
+        map.removeSource('heatmap-source');
+    }
+
+    if (!heatmapVisible) return;
+
+    const populatedAreas = [
+        {
+            coords: [121.0795, 14.6098],
+            intensity: 1.0,
+            radius: 3.5
+        },
+        {
+            coords: [121.065204, 14.592959],
+            intensity: 0.95,
+            radius: 3.2
+        },
+        {
+            coords: [121.062789, 14.584370],
+            intensity: 0.9,
+            radius: 3.0
+        },
+        {
+            coords: [121.076221, 14.596158],
+            intensity: 0.55,
+            radius: 2.4
+        },
+        {
+            coords: [121.063797, 14.600613],
+            intensity: 0.5,
+            radius: 2.2
+        },
+        {
+            coords: [121.093304, 14.602790],
+            intensity: 0.35,
+            radius: 1.8
+        }
+    ];
+
+    const features = [];
+
+    populatedAreas.forEach(area => {
+
+        const points = 250;
+
+        for (let i = 0; i < points; i++) {
+
+            const angle = Math.random() * Math.PI * 2;
+
+            const distance =
+                Math.sqrt(Math.random()) *
+                area.radius;
+
+            const dx =
+                distance * Math.cos(angle);
+
+            const dy =
+                distance * Math.sin(angle);
+
+            const newLng =
+                area.coords[0] +
+                (
+                    dx /
+                    (
+                        111.32 *
+                        Math.cos(
+                            area.coords[1] *
+                            Math.PI / 180
+                        )
+                    )
+                );
+
+            const newLat =
+                area.coords[1] +
+                (dy / 110.574);
+
+            const centerDistance =
+                Math.sqrt(
+                    Math.pow(
+                        (newLng - lng) * 111,
+                        2
+                    ) +
+                    Math.pow(
+                        (newLat - lat) * 111,
+                        2
+                    )
+                );
+
+            if (centerDistance <= 10) {
+
+                features.push({
+                    type: 'Feature',
+                    properties: {
+                        intensity: area.intensity
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [
+                            newLng,
+                            newLat
+                        ]
+                    }
+                });
+            }
+        }
+    });
+
+    map.addSource('heatmap-source', {
+        type: 'geojson',
+        data: {
+            type: 'FeatureCollection',
+            features: features
+        }
+    });
+
+    map.addLayer({
+        id: 'heatmap-layer',
+        type: 'heatmap',
+        source: 'heatmap-source',
+        maxzoom: 22,
+        paint: {
+            'heatmap-weight': [
+                'get',
+                'intensity'
+            ],
+
+            'heatmap-radius': 45,
+
+            'heatmap-intensity': 1.8,
+
+            'heatmap-opacity': 0.75,
+
+            'heatmap-color': [
+                'interpolate',
+                ['linear'],
+                ['heatmap-density'],
+
+                0,
+                'rgba(120,0,0,0)',
+
+                0.15,
+                'rgba(140,0,0,0.55)',
+
+                0.30,
+                'rgba(180,0,0,0.75)',
+
+                0.45,
+                'rgba(255,80,80,0.85)',
+
+                0.65,
+                'rgba(255,140,0,0.95)',
+
+                0.85,
+                'rgba(255,200,0,1)',
+
+                1,
+                'rgba(255,255,120,1)'
+            ]
+        }
+    });
+};
 
 map.on('style.load', () => {
 
-    // =================================================
-    // 3D BUILDINGS
-    // =================================================
-
     map.addLayer({
-
         id: '3d-buildings',
-
         source: 'composite',
-
         'source-layer': 'building',
-
         filter: ['==', 'extrude', 'true'],
-
         type: 'fill-extrusion',
-
         minzoom: 15,
-
         paint: {
-
             'fill-extrusion-color': '#aaa',
-
             'fill-extrusion-height': [
                 'get',
                 'height'
             ],
-
             'fill-extrusion-base': [
                 'get',
                 'min_height'
             ],
-
             'fill-extrusion-opacity': 0.6
-
         }
-
     });
 
-    // =================================================
-    // MODEL LOCATION
-    // =================================================
-
-    const modelOrigin = [
-        lng,
-        lat
-    ];
+    const modelOrigin = [lng, lat];
 
     const modelAltitude = 0;
 
@@ -400,52 +818,27 @@ map.on('style.load', () => {
             modelAltitude
         );
 
-    // =================================================
-    // MODEL TRANSFORM
-    // =================================================
-
     const modelTransform = {
-
-        translateX:
-            modelAsMercatorCoordinate.x,
-
-        translateY:
-            modelAsMercatorCoordinate.y,
-
-        translateZ:
-            modelAsMercatorCoordinate.z,
-
+        translateX: modelAsMercatorCoordinate.x,
+        translateY: modelAsMercatorCoordinate.y,
+        translateZ: modelAsMercatorCoordinate.z,
         rotateX: Math.PI / 2,
-
-        rotateY: 360,
-
+        rotateY: 0,
         rotateZ: 0,
-
         scale:
             modelAsMercatorCoordinate
             .meterInMercatorCoordinateUnits()
-
     };
 
-    // =================================================
-    // CUSTOM LAYER
-    // =================================================
-
     const customLayer = {
-
         id: '3d-model',
-
         type: 'custom',
-
         renderingMode: '3d',
 
         onAdd(map, gl) {
 
-            this.camera =
-                new THREE.Camera();
-
-            this.scene =
-                new THREE.Scene();
+            this.camera = new THREE.Camera();
+            this.scene = new THREE.Scene();
 
             const ambientLight =
                 new THREE.AmbientLight(
@@ -453,9 +846,7 @@ map.on('style.load', () => {
                     3
                 );
 
-            this.scene.add(
-                ambientLight
-            );
+            this.scene.add(ambientLight);
 
             const directionalLight =
                 new THREE.DirectionalLight(
@@ -469,88 +860,33 @@ map.on('style.load', () => {
                 200
             );
 
-            this.scene.add(
-                directionalLight
-            );
+            this.scene.add(directionalLight);
 
-            const loader =
-                new GLTFLoader();
+            const loader = new GLTFLoader();
 
             loader.load(
-
                 './BroadwalkMallFinal2.glb',
-
                 (gltf) => {
-
-                    console.log(
-                        'MODEL LOADED'
-                    );
-
-                    this.model =
-                        gltf.scene;
+                    this.model = gltf.scene;
 
                     this.model.scale.set(
-                        1,
-                        1,
-                        1
+                          0.8,
+                          0.8,
+                          0.8,
                     );
 
-                    const box =
-                        new THREE.Box3()
-                        .setFromObject(
-                            this.model
-                        );
-
-                    this.model.position.z =
-                        -box.min.z;
-
-                    this.model.traverse(
-                        (obj) => {
-
-                        if (obj.isMesh) {
-
-                            obj.castShadow = true;
-
-                            obj.receiveShadow = true;
-
-                        }
-
-                    });
-
-                    this.scene.add(
-                        this.model
-                    );
-
-                },
-
-                undefined,
-
-                (error) => {
-
-                    console.error(
-                        'GLB ERROR:',
-                        error
-                    );
-
+                    this.scene.add(this.model);
                 }
-
             );
 
             this.renderer =
                 new THREE.WebGLRenderer({
-
-                    canvas:
-                        map.getCanvas(),
-
+                    canvas: map.getCanvas(),
                     context: gl,
-
                     antialias: true
-
                 });
 
-            this.renderer.autoClear =
-                false;
-
+            this.renderer.autoClear = false;
         },
 
         render(gl, matrix) {
@@ -558,39 +894,21 @@ map.on('style.load', () => {
             const rotationX =
                 new THREE.Matrix4()
                 .makeRotationAxis(
-
-                    new THREE.Vector3(
-                        1,
-                        0,
-                        0
-                    ),
-
+                    new THREE.Vector3(1,0,0),
                     modelTransform.rotateX
                 );
 
             const rotationY =
                 new THREE.Matrix4()
                 .makeRotationAxis(
-
-                    new THREE.Vector3(
-                        0,
-                        1,
-                        0
-                    ),
-
+                    new THREE.Vector3(0,1,0),
                     modelTransform.rotateY
                 );
 
             const rotationZ =
                 new THREE.Matrix4()
                 .makeRotationAxis(
-
-                    new THREE.Vector3(
-                        0,
-                        0,
-                        1
-                    ),
-
+                    new THREE.Vector3(0,0,1),
                     modelTransform.rotateZ
                 );
 
@@ -600,35 +918,20 @@ map.on('style.load', () => {
 
             const l =
                 new THREE.Matrix4()
-
                 .makeTranslation(
-
                     modelTransform.translateX,
-
                     modelTransform.translateY,
-
                     modelTransform.translateZ
-
                 )
-
                 .scale(
-
                     new THREE.Vector3(
-
                         modelTransform.scale,
-
                         -modelTransform.scale,
-
                         modelTransform.scale
-
                     )
-
                 )
-
                 .multiply(rotationX)
-
                 .multiply(rotationY)
-
                 .multiply(rotationZ);
 
             this.camera.projectionMatrix =
@@ -637,24 +940,17 @@ map.on('style.load', () => {
             this.renderer.resetState();
 
             this.renderer.render(
-
                 this.scene,
-
                 this.camera
-
             );
 
             map.triggerRepaint();
-
         }
-
     };
 
     map.addLayer(customLayer);
-
 });
 
 </script>
-
 </body>
 </html>
